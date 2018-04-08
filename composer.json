@@ -1,0 +1,25 @@
+{
+    "name": "smadeira/planning-center-api",
+    "description": "PHP API wrapper for the Planning Center REST API",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Scott Madeira",
+            "email": "smadeira@zoominternet.net"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "guzzlehttp/guzzle": "~6.0",
+        "illuminate/cache": "5.x",
+        "illuminate/filesystem": "5.x",
+        "vlucas/phpdotenv": "^2.4"
+    },
+    "minimum-stability": "dev",    
+    "autoload": {
+        "psr-4": {
+            "PlanningCenterAPI\\": "src/"
+        }
+    }
+}
