@@ -1,6 +1,6 @@
 {
     "name": "smadeira/planning-center-api",
-    "description": "PHP API wrapper for the Planning Center REST API",
+    "description": "PHP API wrapper for the Planning Center JSON API",
     "type": "library",
     "license": "MIT",
     "authors": [
