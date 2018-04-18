@@ -2,4 +2,3 @@
 .idea
 .env
 vendor/
-src/MinistryPlatformAPI.php

@@ -1,11 +1,7 @@
 ## Planning Center API Wrapper
 
-
 A PHP wrapper to access Planning Center data.</p>
-
-
 ## Installation
-
 ### Include the Package
 This package is installed via Composer and the following assumes you have installed and initialized Composer for 
 the project.  Please refer to the <a href="http://getcomposer.org" target="blank">Composer</a> web site for help on getting composer
@@ -46,13 +42,9 @@ This package makes use of vlucas/phpdotenv to manage configuration variables.  I
 are using the correct URIs, client ID and secret for your installation.
 
 ```
-# Current System Info
-PCO_API_ENDPOINT="https://my.mychurch.org/ministryplatformapi"
-PCO_OAUTH_DISCOVERY_ENDPOINT="https://my.mychurch.org/ministryplatform/oauth"
-PCO_CLIENT_ID="myclientID"
-PCO_CLIENT_SECRET="3053ec5d-my-secret-eae9"
-
-PCO_API_SCOPE="http://www.thinkministry.com/dataplatform/scopes/all"
+# Planning Center API Parameters
+PCO_APPLICATION_ID=YOU_PCO_APPLICATION_ID
+PCO_SECRET=YOUR_PCO_SECRET
 ```
 
 ### Loading the API Wrapper
@@ -64,7 +56,7 @@ This is an example of what the top of a script might look like.
 ```php
 require_once __DIR__ . '/vendor/autoload.php';
 
-use MinistryPlatformAPI\MinistryPlatformAPI as MP;
+use PlanningCenterAPI\PlanningCenterAPI as PCO;
 
 // Get environment variables
 $dotenv = new Dotenv\Dotenv(__DIR__);
@@ -73,58 +65,52 @@ $dotenv->load();
 ```  
 
 ## Usage
-Usage is straight forward.  Authenticate and execute your request.
-### Authentication
-Assuming your .env parameters are correct, this will authenticate your code 
-
-```php
-$mp = new MP();
-$mp->authenticate();
-```
+Usage is straight forward.  Construct and execute your request.
 
 ### Execute select query
-The API Wrapper uses the same syntax as the swagger page. You can define the table, the select statement, filter and 
-orderBy clauses. This will return an array of events and then dump them to the screen.  Note that the data uses the familiar MP brand
-of SQL which is consistent with the platform.  
+The API Wrapper uses the same syntax and format as the online Planning Center API page. To execute a simple query you define the various components and execute.
+This sample will get all of the People in the People module (currently supports People and Services) with a last name of Smith and includes references to their
+addresses, emails and phone numbers.  It is sorted in descending order of last name (Z - A)  
 
 ```php
-// Get all Approved events happening in the next 30 days that are not cancelled and order by the Event Start Date
-$events = $mp->table('Events')
-         ->select("Event_ID, Event_Title, Event_Start_Date, Meeting_Instructions, Event_End_Date, Location_ID_Table.[Location_Name], dp_fileUniqueId AS Image_ID")
-         ->filter('Events.Event_Start_Date between getdate() and dateadd(day, 30, getdate()) AND Featured_On_Calendar = 1 AND Events.[_Approved] = 1 AND ISNULL(Events.[Cancelled], 0) = 0')
-         ->orderBy('Event_Start_Date')
-         ->get();
-         
-print_r($events);
-         
+// Get all people named Smith and sort by first name in descending order.  Then, print the results in array format (you would do additional processing 
+// of the data depending on your needs.
+
+$pco = new PCO();
+
+$people = $pco->module('people')
+    ->table('people')
+    ->where('last_name', '=', 'Smith')
+    ->includes('addresses,emails,phone_numbers')
+    ->order('-first_name')
+    ->get();
+        
+(!$people) ? print_r( $pco->errorMessage() ) : print_r($people);         
 ```
 
 ### The whole script
-Here is the whole script that gets events in the next 30 days.
-
+Here is the whole script...
 ```php
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use MinistryPlatformAPI\MinistryPlatformAPI as MP;
+use PlanningCenterAPI\PlanningCenterAPI as PCO;
 
 // Get environment variables
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
 
+$pco = new PCO();
 
-// Attempt to authenticate to the MP API
-$mp = new MP();
-$mp->authenticate();
-
-$events = $mp->table('Events')
-             ->select("Event_ID, Event_Title, Event_Start_Date, Meeting_Instructions, Event_End_Date, Location_ID_Table.[Location_Name], dp_fileUniqueId AS Image_ID")
-             ->filter('Events.Event_Start_Date between getdate() and dateadd(day, 30, getdate()) AND Featured_On_Calendar = 1 AND Events.[_Approved] = 1 AND ISNULL(Events.[Cancelled], 0) = 0')
-             ->orderBy('Event_Start_Date')
-             ->get();
-
-print_r($events);
+$people = $pco->module('people')
+    ->table('people')
+    ->where('last_name', '=', 'Smith')
+    ->includes('addresses,emails,phone_numbers')
+    ->order('-first_name')
+    ->get();
+        
+(!$people) ? print_r( $pco->errorMessage() ) : print_r($people); 
 ```
 
 ### POSTing new Records
