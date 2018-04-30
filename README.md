@@ -79,11 +79,11 @@ addresses, emails and phone numbers.  It is sorted in descending order of last n
 $pco = new PCO();
 
 $people = $pco->module('people')
-    ->table('people')
-    ->where('last_name', '=', 'Smith')
-    ->includes('addresses,emails,phone_numbers')
-    ->order('-first_name')
-    ->get();
+            ->table('people')
+            ->where('last_name', '=', 'Smith')
+            ->includes('addresses,emails,phone_numbers')
+            ->order('-first_name')
+            ->get();
         
 (!$people) ? print_r( $pco->errorMessage() ) : print_r($people);         
 ```
@@ -104,52 +104,14 @@ $dotenv->load();
 $pco = new PCO();
 
 $people = $pco->module('people')
-    ->table('people')
-    ->where('last_name', '=', 'Smith')
-    ->includes('addresses,emails,phone_numbers')
-    ->order('-first_name')
-    ->get();
+            ->table('people')
+            ->where('last_name', '=', 'Smith')
+            ->includes('addresses,emails,phone_numbers')
+            ->order('-first_name')
+            ->get();
         
 (!$people) ? print_r( $pco->errorMessage() ) : print_r($people); 
 ```
 
-### POSTing new Records
-Data can be written to database via HTTP POST request. The new data is specified in the record and all required fields must be provided.
-The record is an array of arrays (2D array) so multiple rows can be created in one API call. Note that even if you are creating only one 
-row of data, the record data must still be a 2D array.
-
-This example will add two participants to an event, each with the status of 02 Registered:
-```php
-// Create the array of records to POST
-$rec = [];
-$rec[] = ['Event_ID' => 12910, 'Participant_ID' => 46616, 'Participation_Status_ID' => 2];
-$rec[] = ['Event_ID' => 12910, 'Participant_ID' => 46617, 'Participation_Status_ID' => 2];
-
-$event = $mp->table('Event_Participants')
-		->select("Event_Participant_ID, Event_ID, Participant_ID, Participation_Status_ID")
-		->records($rec)			
-		->post();
-``` 
-
-### Updating Records via PUT
-Existing data can be updated via the HTTP PUT request.  The data to be updated requires the ID for the row (Event_ID, for example) and the fields to be updated. 
-The new data is specified in the record.  The record is an array of arrays (2D array) so multiple updates can be executed in one statement. Note 
-that even if you are updating only one row of data, the record data must still be a 2D array.  This PUT will update the participation status to 03 Attended
-
-```php
-$rec = [];
-$rec[] = ['Event_Participant_ID' => 278456, 'Participation_Status_ID' => 3];
-
-$event = $mp->table('Event_Participants')
-		->select("Event_Participant_ID, Event_ID, Participant_ID, Participation_Status_ID")
-		->records($rec)			
-		->put();
-```
-
-Note that in both POSTing and PUTing, the API will return the resulting records.  If you only want to get back specific fields and 
-not the whole record(s), you can specify those fields in the select() method.  Effectively, the API is doing the POST or PUT and then 
-returning the results of a GET all in one operation.  
-
 ## Still to be Done
-As of now the wrapper only handles GET,POST and PUT to the tables because that is all I've needed.  DELETE is not implemented almost on purpose to 
-prevent me from doing something silly. If there is a need, it can be implemented fairly easily.
+As of now the wrapper only handles GET to the tables.  POST and PUT will be added in the near future.

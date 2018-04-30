@@ -1,6 +1,6 @@
 <?php namespace PlanningCenterAPI;
 
-class Facade extends \Illuminate\Support\Facades\Facade
+class PlanningCenterFacade extends \Illuminate\Support\Facades\Facade
 {
     /**
      * {@inheritDoc}

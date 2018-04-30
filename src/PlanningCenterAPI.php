@@ -85,6 +85,12 @@ class PlanningCenterAPI
     private $parameters = null;
 
     /**
+     * POST data being sent to Planning Center
+     * @var null
+     */
+    private $data = null;
+
+    /**
      * Guzzle error message
      *
      * @var null
@@ -251,6 +257,18 @@ class PlanningCenterAPI
     }
 
     /**
+     * Specify the data to be used in the POST or PUT operations
+     *
+     * @param $data
+     * @return $this
+     */
+    public function data($data)
+    {
+        $this->data = json_encode($data);
+
+        return $this;
+    }
+    /**
      * Execute a get with the configured URL - will return all results
      * @return bool|mixed
      */
@@ -298,6 +316,57 @@ class PlanningCenterAPI
     }
 
     /**
+     * Create object in Planning Center
+     *
+     * @param $data
+     * @return bool|mixed
+     */
+    public function post()
+    {
+        // Initialize the Guzzle client
+        $client = new Client(); //GuzzleHttp\Client
+        $this->errorMessage = null;
+
+        $endpoint = $this->buildEndpoint();
+
+        // dd($endpoint);
+        // dd($this->data);
+
+        $this->headers = ['Accept: application/json',
+            'Content-type: application/json',
+            $this->authorization
+        ];
+
+        try {
+            $response = $client->request('POST', $endpoint, [
+                'headers' => $this->headers,
+                'curl' => $this->setPutCurlopts(),
+                'body' => $this->data,
+                'auth' => [
+                    $this->pcoApplicationId,
+                    $this->pcoSecret
+                ]
+            ]);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $error = $e->getResponse()->getBody()->getContents();
+            $this->saveErrorMessage($error);
+            return false;
+
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            $error = $e->getResponse()->getBody()->getContents();
+            $this->saveErrorMessage($error);
+            return false;
+
+        }
+
+        $this->reset();
+
+        return json_decode($response->getBody(), true);
+    }
+
+
+    /**
      * Takes a fully formed request URL and executes it.
      * @param $endpoint
      * @return array
@@ -341,8 +410,8 @@ class PlanningCenterAPI
         $this->associations = null;
 
         $this->parameters = null;
-        $this->parameters['offset'] = 0;
-        $this->parameters['per_page'] = 100;
+        // $this->parameters['offset'] = 0;
+        // $this->parameters['per_page'] = 100;
     }
 
     /**
@@ -448,8 +517,8 @@ class PlanningCenterAPI
         // Create the Authorization header
         $this->authorization = 'Authorization: Basic ' . base64_encode($this->pcoApplicationId . ':' . $this->pcoSecret);
 
-        $this->parameters['offset'] = 0;
-        $this->parameters['per_page'] = 100;
+        // $this->parameters['offset'] = 0;
+        // $this->parameters['per_page'] = 100;
 
     }
 
@@ -528,6 +597,27 @@ class PlanningCenterAPI
         $curlopts = [
             CURLOPT_HTTPHEADER => $this->headers,
             CURLOPT_POST => 0,
+            CURLOPT_HEADER => 0,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_VERBOSE => false,
+            CURLOPT_RETURNTRANSFER => true
+        ];
+
+        return $curlopts;
+    }
+
+    /**
+     * Set the cUrl Options for a POST/PUT request
+     *
+     * @return array
+     */
+    private function setPutCurlopts()
+    {
+
+        $curlopts = [
+            CURLOPT_HTTPHEADER => $this->headers,
+            CURLOPT_POST => 1,
+            // CURLOPT_POSTFIELDS => $this->data,
             CURLOPT_HEADER => 0,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_VERBOSE => false,
