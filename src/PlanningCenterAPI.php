@@ -358,6 +358,14 @@ class PlanningCenterAPI
             $this->saveErrorMessage($error);
             return false;
 
+        }  catch (\GuzzleHttp\Exception\ServerException $e) {
+            $error = $e->getResponse()->getBody()->getContents();
+            $this->saveErrorMessage($error);
+            return false;
+
+        } catch (Exception $e) {
+            $error = 'Unknown Exception in Guzzle request';
+            $this->saveErrorMessage($error);
         }
 
         $this->reset();
@@ -498,6 +506,14 @@ class PlanningCenterAPI
             $this->saveErrorMessage($error);
             return false;
 
+        }  catch (\GuzzleHttp\Exception\ServerException $e) {
+            $error = $e->getResponse()->getBody()->getContents();
+            $this->saveErrorMessage($error);
+            return false;
+
+        } catch (Exception $e) {
+            $error = 'Unknown Exception in Guzzle request';
+            $this->saveErrorMessage($error);
         }
 
         return json_decode($response->getBody(), true);
