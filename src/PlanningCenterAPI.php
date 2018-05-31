@@ -221,7 +221,6 @@ class PlanningCenterAPI
      */
     public function offset($nextRecord)
     {
-
         $this->parameters['offset'] = $nextRecord;
 
         return $this;
@@ -274,6 +273,9 @@ class PlanningCenterAPI
      */
     public function get($maxRows = 100000)
     {
+        // Set the results per page to 100 if not alread set elsewhere
+        $this->initializeQueryWindow();
+
         // Set max rows to be returned if not null
         if ($maxRows > 0) $this->setMaximumRows($maxRows);
 
@@ -281,26 +283,33 @@ class PlanningCenterAPI
         $client = new Client(); //GuzzleHttp\Client
         $this->errorMessage = null;
 
-        $results = [];
+        $results['data'] = [];
+        $results['included'] = [];
         $numRows = 0;
 
         do {
             $endpoint = $this->buildEndpoint();
 
             // Execute the request
-            $r = $this->execute($endpoint, $client);
+            if (! $r = $this->execute($endpoint, $client)){
+                // If failed, reset the parameters and return - error message should be set
+                $this->reset();
+                return false;
+            }            
 
             // Get the number of rows returned
             $numRows = count($r['data']);
 
             // Append the result set to the previous results
-            $results = array_merge($results, $r['data']);
+            $results['data'] = array_merge($results['data'], $r['data']);
+            $results['included'] = array_merge($results['included'], $r['included']);
 
             // Set offset and per_page for next iteration, if any
             $this->setRequestWindow($numRows);
 
         } while ($this->parameters['offset'] > 0);
 
+        // Reset all query parameters
         $this->reset();
 
         return $results;
@@ -316,6 +325,25 @@ class PlanningCenterAPI
     }
 
     /**
+     * Execute a raw query.  It accepts a completely formed URL
+     * and executes it.
+     *
+     * @param $endpoint
+     * @return mixed
+     */
+    public function raw($endpoint)
+    {
+        // Initialize the Guzzle client
+        $client = new Client(); //GuzzleHttp\Client
+        $this->errorMessage = null;
+
+        // Execute the request
+        $results = $this->execute($endpoint, $client);
+
+        return $results;
+    }
+
+    /**
      * Create object in Planning Center
      *
      * @param $data
@@ -323,22 +351,61 @@ class PlanningCenterAPI
      */
     public function post()
     {
+        if (! $response = $this->sendData('POST')) {
+            return $this->errorMessage;
+        } else {
+            return $response;
+        }
+    }
+
+    /**
+     * Update data in PCO
+     *
+     */
+    public function put()
+    {
+        if (! $response = $this->sendData('PUT')) {
+            return $this->errorMessage;
+        } else {
+            return $response;
+        }
+
+    }
+
+    /**
+     * Update data in PCO
+     *
+     */
+    public function patch()
+    {
+        if (! $response = $this->sendData('PATCH')) {
+            return $this->errorMessage;
+        } else {
+            return $response;
+        }
+
+    }
+
+    /**
+     * Exeucte a POST or PUT request
+     *
+     */
+    private function sendData($verb)
+    {
         // Initialize the Guzzle client
         $client = new Client(); //GuzzleHttp\Client
         $this->errorMessage = null;
 
         $endpoint = $this->buildEndpoint();
-
-        // dd($endpoint);
-        // dd($this->data);
-
+       
         $this->headers = ['Accept: application/json',
             'Content-type: application/json',
             $this->authorization
         ];
 
         try {
-            $response = $client->request('POST', $endpoint, [
+            $error = false;
+            $response = $client->request($verb, $endpoint, [
                 'headers' => $this->headers,
                 'curl' => $this->setPutCurlopts(),
                 'body' => $this->data,
@@ -351,27 +418,29 @@ class PlanningCenterAPI
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $error = $e->getResponse()->getBody()->getContents();
             $this->saveErrorMessage($error);
-            return false;
+            $error = true;
 
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
             $error = $e->getResponse()->getBody()->getContents();
             $this->saveErrorMessage($error);
-            return false;
+            $error = true;
 
         }  catch (\GuzzleHttp\Exception\ServerException $e) {
             $error = $e->getResponse()->getBody()->getContents();
             $this->saveErrorMessage($error);
-            return false;
+            $error = true;
 
         } catch (Exception $e) {
             $error = 'Unknown Exception in Guzzle request';
             $this->saveErrorMessage($error);
+            $error = true;
+        } finally {
+            $this->reset();    
         }
-
-        $this->reset();
-
-        return json_decode($response->getBody(), true);
+        
+        return $error ? false : json_decode($response->getBody(), true);
     }
+
 
 
     /**
@@ -418,8 +487,6 @@ class PlanningCenterAPI
         $this->associations = null;
 
         $this->parameters = null;
-        // $this->parameters['offset'] = 0;
-        // $this->parameters['per_page'] = 100;
     }
 
     /**
@@ -430,7 +497,7 @@ class PlanningCenterAPI
      */
     private function setRequestWindow($numRows)
     {
-        if ($this->fullQuery($numRows)) {
+        if ($this->fullResult($numRows)) {
             if ($numRows + $this->parameters['offset'] < $this->maxRows) {
                 // Still have more to get
                 $this->parameters['offset'] += $numRows;
@@ -466,13 +533,14 @@ class PlanningCenterAPI
      * @param $numRows
      * @return bool
      */
-    private function fullQuery($numRows)
+    private function fullResult($numRows)
     {
         return $numRows == $this->parameters['per_page'];
     }
 
+
     /**
-     * Execute a rrequest using the provided endpoint
+     * Execute a request using the provided endpoint
      *
      * @param $endpoint
      * @param $client
@@ -494,11 +562,11 @@ class PlanningCenterAPI
                     $this->pcoApplicationId,
                     $this->pcoSecret
                 ]
-            ]);
+            ]);    
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $error = $e->getResponse()->getBody()->getContents();
-            $this->saveErrorMessage($error);
+            $this->saveErrorMessage($error);            
             return false;
 
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
@@ -517,26 +585,9 @@ class PlanningCenterAPI
         }
 
         return json_decode($response->getBody(), true);
-
+         
     }
 
-
-    /**
-     * Initialize the class.  Called from the constructor
-     *
-     */
-    private function initialize()
-    {
-        $this->pcoApplicationId = getenv('PCO_APPLICATION_ID', null);
-        $this->pcoSecret = getenv('PCO_SECRET', null);
-
-        // Create the Authorization header
-        $this->authorization = 'Authorization: Basic ' . base64_encode($this->pcoApplicationId . ':' . $this->pcoSecret);
-
-        // $this->parameters['offset'] = 0;
-        // $this->parameters['per_page'] = 100;
-
-    }
 
     /**
      * Build the endpoint for the request.  It will have the form of:
@@ -597,9 +648,12 @@ class PlanningCenterAPI
      */
     private function saveErrorMessage($error)
     {
-        $e = json_decode($error, true);
+        $e = json_decode($error, true);  
 
-        $this->errorMessage = $e['errors'];
+        // print_r($e); die();     
+
+        $this->errorMessage = $e;
+
     }
 
 
@@ -641,5 +695,37 @@ class PlanningCenterAPI
         ];
 
         return $curlopts;
+    }
+
+    /**
+     * Initialize the class.  Called from the constructor
+     *
+     */
+    private function initialize()
+    {
+        // Create the Authorization header
+        $this->pcoApplicationId = getenv('PCO_APPLICATION_ID', null);
+        $this->pcoSecret = getenv('PCO_SECRET', null);
+        $this->authorization = 'Authorization: Basic ' . base64_encode($this->pcoApplicationId . ':' . $this->pcoSecret);
+
+    }
+
+    /**
+     * For GET queries - need to set the results per page and the page offset
+     * if the user didn't specify specific values in building their query.
+     * 100 results per page is the max size.  Offset 0 says start at the very first
+     * result.
+     */
+    private function initializeQueryWindow()
+    {
+        // Set per_page to 100 if not already set elsewhere
+        if (is_null($this->parameters) || ! array_key_exists('per_page', $this->parameters)) $this->parameters['per_page'] = 100;
+
+        $this->parameters['per_page'] = $this->parameters['per_page'] ? $this->parameters['per_page'] : 100;
+
+        // Set the offset to 0 if not already set elsewhere
+        if (is_null($this->parameters) || ! array_key_exists('offset', $this->parameters)) $this->parameters['offset'] = 0;
+
+        $this->parameters['offset'] = $this->parameters['offset'] ? $this->parameters['offset'] : 0;
     }
 }
