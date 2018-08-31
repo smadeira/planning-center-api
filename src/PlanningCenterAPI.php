@@ -1,5 +1,15 @@
 <?php namespace PlanningCenterAPI;
 
+/**
+ * Class PlanningCenterAPI
+ * @package PlanningCenterAPI
+ *
+ * Purpose: Access the planning center REST API
+ *
+ * URL Format: https://api.planningcenteronline.com/module/v2/table/id/associations/id2/association2?parameters
+ *
+ */
+
 use GuzzleHttp\Client;
 
 class PlanningCenterAPI
@@ -57,7 +67,7 @@ class PlanningCenterAPI
     private $table = null;
 
     /**
-     * if (Primary Key) for the request - optional
+     * id (Primary Key) for the request - optional
      * @var null
      */
     private $id = null;
@@ -69,6 +79,17 @@ class PlanningCenterAPI
      */
     private $associations = null;
 
+    /**
+     * 2nd level id for the association
+     * @var null
+     */
+    private $id2 = null;
+
+    /**
+     * 2nd level association
+     * @var null
+     */
+    private $associations2 = null;
     /**
      * Max number of rows to return in a request - optional
      * If not provided, will default to 10,000
@@ -171,6 +192,31 @@ class PlanningCenterAPI
     }
 
     /**
+     * Set the id for a specific associated entry in a table
+     * @param $id
+     * @return $this
+     */
+    public function id2($id)
+    {
+        $this->id2 = $id;
+
+        return $this;
+    }
+
+    /**
+     * Set the secondary association
+     *
+     * @param $associations
+     * @return $this
+     */
+    public function associations2($associations)
+    {
+        $this->associations2 = $associations;
+
+        return $this;
+    }
+
+    /**
      * Set the additional info to be included in the results (addresses, email, etc.)
      *
      * @param $includes
@@ -179,7 +225,6 @@ class PlanningCenterAPI
     public function includes($includes)
     {
         $this->parameters['include'] = $includes;
-        // $this->includes = $includes;
 
         return $this;
     }
@@ -239,7 +284,6 @@ class PlanningCenterAPI
         $this->parameters['per_page'] = $rows;
 
         return $this;
-
     }
 
     /**
@@ -267,6 +311,21 @@ class PlanningCenterAPI
 
         return $this;
     }
+
+    /**
+     * Specify an array of parameters
+     * @param $parameters
+     * @return $this
+     */
+    public function parameterArray($parameters)
+    {
+        foreach ($parameters as $name => $value){
+            $this->parameters[$name] = $value;
+        }
+
+        return $this;
+    }
+
     /**
      * Execute a get with the configured URL - will return all results
      * @return bool|mixed
@@ -369,7 +428,6 @@ class PlanningCenterAPI
         } else {
             return $response;
         }
-
     }
 
     /**
@@ -383,7 +441,6 @@ class PlanningCenterAPI
         } else {
             return $response;
         }
-
     }
 
     /**
@@ -485,6 +542,8 @@ class PlanningCenterAPI
         $this->id = null;
         $this->action = null;
         $this->associations = null;
+        $this->id2 = null;
+        $this->associations2 = null;
 
         $this->parameters = null;
     }
@@ -605,12 +664,17 @@ class PlanningCenterAPI
         // Append association if provided - optional
         $endpoint .= ($this->associations) ? '/' . $this->associations : '';
 
+        // Append the second id if provided - optional
+        $endpoint .= ($this->id2) ? '/' . $this->id2 : '';
+
+        // Append second association if provided - optional
+        $endpoint .= ($this->associations2) ? '/' . $this->associations2 : '';
+
         // Handle URL parameters, if provided
         if ($this->hasParameters()) $endpoint .= $this->appendParameters();
 
         return $endpoint;
     }
-
 
     /**
      * Check URL parameters for any non-null values.  IF they exist then return true
@@ -621,7 +685,6 @@ class PlanningCenterAPI
     {
         return is_array($this->parameters);
     }
-
 
     private function appendParameters()
     {
@@ -638,9 +701,7 @@ class PlanningCenterAPI
         }
 
         return rtrim($params, '&');
-
     }
-
 
     /**
      * Extract the error messages from the Exception
@@ -650,12 +711,8 @@ class PlanningCenterAPI
     {
         $e = json_decode($error, true);  
 
-        // print_r($e); die();     
-
         $this->errorMessage = $e;
-
     }
-
 
     /**
      * Set the cUrl Options for a get request
@@ -707,7 +764,6 @@ class PlanningCenterAPI
         $this->pcoApplicationId = getenv('PCO_APPLICATION_ID', null);
         $this->pcoSecret = getenv('PCO_SECRET', null);
         $this->authorization = 'Authorization: Basic ' . base64_encode($this->pcoApplicationId . ':' . $this->pcoSecret);
-
     }
 
     /**
