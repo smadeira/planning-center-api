@@ -6,7 +6,7 @@
  *
  * Purpose: Access the planning center REST API
  *
- * URL Format: https://api.planningcenteronline.com/module/v2/table/id/associations/id2/association2?parameters
+ * URL Format: https://api.planningcenteronline.com/module/v2/table/id/associations/id2/association2/id3?parameters
  *
  */
 
@@ -90,6 +90,15 @@ class PlanningCenterAPI
      * @var null
      */
     private $associations2 = null;
+
+    /**
+     * 3rd level id for the association
+     * @var null
+     */
+    private $id3 = null;
+
+
+
     /**
      * Max number of rows to return in a request - optional
      * If not provided, will default to 10,000
@@ -215,6 +224,20 @@ class PlanningCenterAPI
 
         return $this;
     }
+
+    /**
+     * Set the id for a specific associated entry in a table
+     * @param $id
+     * @return $this
+     */
+    public function id3($id)
+    {
+        $this->id3 = $id;
+
+        return $this;
+    }
+
+
 
     /**
      * Set the additional info to be included in the results (addresses, email, etc.)
@@ -444,6 +467,19 @@ class PlanningCenterAPI
     }
 
     /**
+     * Update data in PCO
+     *
+     */
+    public function delete()
+    {
+        if (! $response = $this->sendData('DELETE')) {
+            return $this->errorMessage;
+        } else {
+            return $response;
+        }
+    }
+
+    /**
      * Exeucte a POST or PUT request
      *
      */
@@ -544,6 +580,7 @@ class PlanningCenterAPI
         $this->associations = null;
         $this->id2 = null;
         $this->associations2 = null;
+        $this->id3 = null;
 
         $this->parameters = null;
     }
@@ -669,6 +706,9 @@ class PlanningCenterAPI
 
         // Append second association if provided - optional
         $endpoint .= ($this->associations2) ? '/' . $this->associations2 : '';
+
+                // Append second association if provided - optional
+        $endpoint .= ($this->id3) ? '/' . $this->id3 : '';
 
         // Handle URL parameters, if provided
         if ($this->hasParameters()) $endpoint .= $this->appendParameters();
