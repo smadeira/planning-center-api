@@ -113,5 +113,4 @@ $people = $pco->module('people')
 (!$people) ? print_r( $pco->errorMessage() ) : print_r($people); 
 ```
 
-## Still to be Done
-As of now the wrapper only handles GET to the tables.  POST and PUT will be added in the near future.
+## POST, PUT, PATCH and DELETE are now supported with their corresomnding methods put(), delete(), etc.
