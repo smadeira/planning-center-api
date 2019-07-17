@@ -14,7 +14,7 @@
         "guzzlehttp/guzzle": "~6.0",
         "illuminate/cache": "5.x",
         "illuminate/filesystem": "5.x",
-        "vlucas/phpdotenv": "^2.4"
+        "vlucas/phpdotenv": "^3.3"
     },
     "minimum-stability": "dev",    
     "autoload": {
