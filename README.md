@@ -17,7 +17,7 @@ Or, you can edit your composer.json file directly to add the Ministry Platform A
 ```
 "require": {
         "php": ">=7.0.0",
-        "smadeira/planning-center-api": "^1.0.0"
+        "smadeira/planning-center-api": "^2.0.0"
     },
 ```
 
@@ -59,7 +59,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PlanningCenterAPI\PlanningCenterAPI as PCO;
 
 // Get environment variables
-$dotenv = new Dotenv\Dotenv(__DIR__);
+$dotenv = Dotenv\Dotenv::create(__DIR__);
 $dotenv->load();
 
 ```  
@@ -98,7 +98,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PlanningCenterAPI\PlanningCenterAPI as PCO;
 
 // Get environment variables
-$dotenv = new Dotenv\Dotenv(__DIR__);
+$dotenv = Dotenv\Dotenv::create(__DIR__);
 $dotenv->load();
 
 $pco = new PCO();
