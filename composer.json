@@ -12,8 +12,8 @@
     "require": {
         "php": ">=7.0.0",
         "guzzlehttp/guzzle": "~6.0",
-        "illuminate/cache": "5.x",
-        "illuminate/filesystem": "5.x",
+        "illuminate/cache": "5.x || 6.x",
+        "illuminate/filesystem": "5.x || 6.x",
         "vlucas/phpdotenv": "^3.3"
     },
     "minimum-stability": "dev",    
