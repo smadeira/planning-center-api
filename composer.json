@@ -10,11 +10,13 @@
         }
     ],
     "require": {
-        "php": ">=7.0.0",
+        "php": ">=7.2.0",
         "guzzlehttp/guzzle": "~6.0",
         "illuminate/cache": "5.x || 6.x",
-        "illuminate/filesystem": "5.x || 6.x",
         "vlucas/phpdotenv": "^3.3"
+    },
+    "suggest": {
+        "illuminate/filesystem": "Install this in non-Laravel Environments"
     },
     "minimum-stability": "dev",    
     "autoload": {
