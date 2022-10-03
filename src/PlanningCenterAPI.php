@@ -36,17 +36,22 @@ class PlanningCenterAPI
      */
     private $authorization = null;
 
-    /**
-     * Base URL for people module
-     * @var string
-     */
-    private $peopleEndpoint = 'https://api.planningcenteronline.com/people/v2/';
+	/**
+	 * API endpoint parameters: URL Prefix
+	 *
+	 * @var string
+	 * @author costmo
+	 */
+	private $apiPrefix = 'https://api.planningcenteronline.com/';
 
-    /**
-     * Base URL for the services module
-     * @var string
-     */
-    private $servicesEndpoint = 'https://api.planningcenteronline.com/services/v2/';
+	/**
+	 * API endpoint parameters: URL Suffix
+	 *
+	 * @var string
+	 * @author costmo
+	 */
+	private $apiSuffix = '/v2/';
+
 
     /**
      * Full URL for the request
@@ -153,12 +158,7 @@ class PlanningCenterAPI
      */
     public function module($module)
     {
-        if ($module == 'people') {
-            $this->endpoint = $this->peopleEndpoint;
-        } else {
-            $this->endpoint = $this->servicesEndpoint;
-        }
-
+		$this->endpoint = $this->apiPrefix . $module . $this->apiSuffix;
         return $this;
     }
 
@@ -377,7 +377,7 @@ class PlanningCenterAPI
                 // If failed, reset the parameters and return - error message should be set
                 $this->reset();
                 return false;
-            }            
+            }
 
             // Get the number of rows returned
             $numRows = count($r['data']);
@@ -490,7 +490,7 @@ class PlanningCenterAPI
         $this->errorMessage = null;
 
         $endpoint = $this->buildEndpoint();
-       
+
         $this->headers = ['Accept: application/json',
             'Content-type: application/json',
             $this->authorization
@@ -528,9 +528,9 @@ class PlanningCenterAPI
             $this->saveErrorMessage($error);
             $error = true;
         } finally {
-            $this->reset();    
+            $this->reset();
         }
-        
+
         return $error ? false : json_decode($response->getBody(), true);
     }
 
@@ -658,11 +658,11 @@ class PlanningCenterAPI
                     $this->pcoApplicationId,
                     $this->pcoSecret
                 ]
-            ]);    
+            ]);
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $error = $e->getResponse()->getBody()->getContents();
-            $this->saveErrorMessage($error);            
+            $this->saveErrorMessage($error);
             return false;
 
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
@@ -681,7 +681,7 @@ class PlanningCenterAPI
         }
 
         return json_decode($response->getBody(), true);
-         
+
     }
 
 
@@ -749,7 +749,7 @@ class PlanningCenterAPI
      */
     private function saveErrorMessage($error)
     {
-        $e = json_decode($error, true);  
+        $e = json_decode($error, true);
 
         $this->errorMessage = $e;
     }
