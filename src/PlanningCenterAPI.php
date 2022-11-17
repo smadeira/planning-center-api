@@ -277,7 +277,7 @@ class PlanningCenterAPI
                 break;
         }
 
-        $this->parameters['where'] = 'where[' . $field . ']' . $op . $value;
+        $this->parameters['where'][] = 'where[' . $field . ']' . $op . $value;
 
         return $this;
     }
@@ -318,6 +318,17 @@ class PlanningCenterAPI
     public function order($order)
     {
         $this->parameters['order'] = $order;
+
+        return $this;
+    }
+
+    /**
+     * Set the filters to be used
+     * @param $filter
+     * @return $this
+     */
+    public function filter($filter) {
+        $this->parameters['filter'] = $filter;
 
         return $this;
     }
@@ -707,7 +718,7 @@ class PlanningCenterAPI
         // Append second association if provided - optional
         $endpoint .= ($this->associations2) ? '/' . $this->associations2 : '';
 
-                // Append second association if provided - optional
+        // Append second association if provided - optional
         $endpoint .= ($this->id3) ? '/' . $this->id3 : '';
 
         // Handle URL parameters, if provided
@@ -736,7 +747,9 @@ class PlanningCenterAPI
                 // where is special and is constructed elsewhere
                 $params .= $key . '=' . $value . '&';
             } else {
-                $params .= $value . '&';
+                foreach ($value as $where) {
+                    $params .= $where . '&';
+                }
             }
         }
 
