@@ -59,7 +59,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PlanningCenterAPI\PlanningCenterAPI as PCO;
 
 // Get environment variables
-$dotenv = Dotenv\Dotenv::create(__DIR__);
+$dotenv = Dotenv\Dotenv::createUnsafeImmutable(__DIR__);
 $dotenv->load();
 
 ```  
