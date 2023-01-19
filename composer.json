@@ -10,14 +10,14 @@
         }
     ],
     "require": {
-        "php": ">=7.3.0",
-        "guzzlehttp/guzzle": "~7.0",
-        "vlucas/phpdotenv": "^5.0"
+        "php": "^8.0",
+        "guzzlehttp/guzzle": "^7.2",
+        "vlucas/phpdotenv": "^5.4"
     },
     "suggest": {
         "illuminate/filesystem": "Install this in non-Laravel Environments"
     },
-    "minimum-stability": "dev",    
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "PlanningCenterAPI\\": "src/"
